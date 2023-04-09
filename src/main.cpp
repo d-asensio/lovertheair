@@ -4,6 +4,7 @@
 #include <WiFiManager.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+#include <LittleFS.h>
 
 // Pinout
 #define LED D2
@@ -14,16 +15,9 @@ const char *topic = "heartbeat";
 const char *mqtt_username = "Lover1";
 const char *mqtt_password = "";
 const int mqtt_port = 8883;
-
-const char mqtt_broker_root_ca [] PROGMEM = R"CERT(
------BEGIN CERTIFICATE-----
-
------END CERTIFICATE-----
-)CERT";
-
+X509List mqtt_broker_certificate;
 
 WiFiManager wifiManager;
-X509List cert(mqtt_broker_root_ca);
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
@@ -43,8 +37,24 @@ void setup_wifi_connection()
     Serial.println("Connecting to WiFi..");
   }
 
-  espClient.setTrustAnchors(&cert);
   Serial.println("Connected to wifi!");
+}
+
+void setup_client_certificate () {
+  if(!LittleFS.begin()){
+    Serial.println("An Error has occurred while initializing the Filesystem");
+    return;
+  }
+  
+  File file = LittleFS.open("/emqxsl-ca.crt", "r");
+  if(!file){
+    Serial.println("Failed to open cretificate file");
+    return;
+  }
+
+  mqtt_broker_certificate.append(file.readString().c_str());
+  espClient.setTrustAnchors(&mqtt_broker_certificate);
+  file.close();
 }
 
 void setup_time_ntp_server () {
@@ -111,6 +121,7 @@ void setup()
 
   setup_pinout();
   setup_wifi_connection();
+  setup_client_certificate();
   setup_time_ntp_server();
   setup_mqtt_broker_connection();
 
