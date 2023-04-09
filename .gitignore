@@ -6,3 +6,6 @@
 
 ## CA Certificate for MQTT broker
 data/emqxsl-ca.crt
+
+## Credentials config file
+private_credentials.ini

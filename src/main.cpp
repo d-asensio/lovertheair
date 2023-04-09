@@ -10,11 +10,10 @@
 #define LED D2
 
 // MQTT Broker Connection
-const char *mqtt_broker = "k2705cf1.ala.us-east-1.emqxsl.com";
-const char *topic = "heartbeat";
-const char *mqtt_username = "Lover1";
-const char *mqtt_password = "";
-const int mqtt_port = 8883;
+const char *mqtt_broker_host = MQTT_BROKER_HOST;
+const int mqtt_port = MQTT_BROKER_PORT;
+const char *mqtt_username = MQTT_USERNAME;
+const char *mqtt_password = MQTT_PASSWORD;
 X509List mqtt_broker_certificate;
 
 WiFiManager wifiManager;
@@ -94,7 +93,7 @@ void handle_mqtt_event(char *topic, byte *payload, unsigned int length)
 
 void setup_mqtt_broker_connection()
 {
-  client.setServer(mqtt_broker, mqtt_port);
+  client.setServer(mqtt_broker_host, mqtt_port);
   client.setCallback(handle_mqtt_event);
 
   while (!client.connected())
@@ -126,8 +125,8 @@ void setup()
   setup_mqtt_broker_connection();
 
   // publish and subscribe
-  client.publish(topic, "hello bitches!");
-  client.subscribe(topic);
+  client.publish("heartbeat", "hello bitches!");
+  client.subscribe("heartbeat");
 }
 
 void loop()
