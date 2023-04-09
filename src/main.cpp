@@ -99,8 +99,8 @@ void setup_mqtt_broker_connection()
 
   while (!client.connected())
   {
-    String client_id = "love-node-1";
-    // client_id += String(WiFi.macAddress());
+    String client_id = "love-node-";
+    client_id += String(WiFi.macAddress());
     Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
     if (client.connect(client_id.c_str(), mqtt_username, mqtt_password))
     {
