@@ -25,6 +25,15 @@ void setup_pinout()
   pinMode(LED, OUTPUT);
 }
 
+void led_blink (int repetitions, int time_interval) {
+  for (int i = 0 ; i < repetitions ; i++) {
+    digitalWrite(LED, HIGH);
+    delay(time_interval);
+    digitalWrite(LED, LOW);
+    delay(time_interval);
+  }
+}
+
 void setup_wifi_connection()
 {
   wifiManager.resetSettings();
@@ -85,10 +94,7 @@ void handle_mqtt_event(char *topic, byte *payload, unsigned int length)
   Serial.println();
   Serial.println("-----------------------");
 
-  digitalWrite(LED, HIGH);
-  delay(500);
-  digitalWrite(LED, LOW);
-  delay(200);
+  led_blink(4, 200);
 }
 
 void setup_mqtt_broker_connection()
@@ -131,5 +137,7 @@ void setup()
 
 void loop()
 {
+  led_blink(1, 1000);
+
   client.loop();
 }
