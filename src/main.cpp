@@ -5,33 +5,70 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <LittleFS.h>
+#include <Adafruit_VL53L0X.h>
 
 // Pinout
-#define LED D2
+#define LED D4
 
 // MQTT Broker Connection
 const char *mqtt_broker_host = MQTT_BROKER_HOST;
 const int mqtt_port = MQTT_BROKER_PORT;
 const char *mqtt_username = MQTT_USERNAME;
 const char *mqtt_password = MQTT_PASSWORD;
-X509List mqtt_broker_certificate;
 
+// Wifi connection
+X509List mqtt_broker_certificate;
 WiFiManager wifiManager;
 WiFiClientSecure espClient;
+
+// MQTT event bus
 PubSubClient client(espClient);
 
-void setup_pinout()
+// Laser sensor
+Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+
+void setup_devices()
 {
+  // Initialise LED
   pinMode(LED, OUTPUT);
+
+  // Initialise VL53L0X sensor
+  if (!lox.begin())
+  {
+    Serial.println(F("Error initialising VL53L0X"));
+    while (1)
+      ;
+  }
 }
 
-void led_blink (int repetitions, int time_interval) {
-  for (int i = 0 ; i < repetitions ; i++) {
+void led_blink(int repetitions, int time_interval)
+{
+  for (int i = 0; i < repetitions; i++)
+  {
     digitalWrite(LED, HIGH);
     delay(time_interval);
     digitalWrite(LED, LOW);
     delay(time_interval);
   }
+}
+
+void measure_distance()
+{
+  VL53L0X_RangingMeasurementData_t measure;
+
+  lox.rangingTest(&measure, false);
+
+  if (measure.RangeStatus != 4)
+  {
+    Serial.print("Distance (mm): ");
+    Serial.println(measure.RangeMilliMeter);
+  }
+  else
+  {
+    Serial.println("Out of range");
+  }
+
+  delay(100);
 }
 
 void setup_wifi_connection()
@@ -48,14 +85,17 @@ void setup_wifi_connection()
   Serial.println("Connected to wifi!");
 }
 
-void setup_client_certificate () {
-  if(!LittleFS.begin()){
+void setup_client_certificate()
+{
+  if (!LittleFS.begin())
+  {
     Serial.println("An Error has occurred while initializing the Filesystem");
     return;
   }
-  
+
   File file = LittleFS.open("/emqxsl-ca.crt", "r");
-  if(!file){
+  if (!file)
+  {
     Serial.println("Failed to open cretificate file");
     return;
   }
@@ -65,12 +105,14 @@ void setup_client_certificate () {
   file.close();
 }
 
-void setup_time_ntp_server () {
+void setup_time_ntp_server()
+{
   configTime(3 * 3600, 0, "pool.ntp.org", "time.nist.gov");
 
   Serial.print("Waiting for NTP time sync: ");
   time_t now = time(nullptr);
-  while (now < 8 * 3600 * 2) {
+  while (now < 8 * 3600 * 2)
+  {
     delay(500);
     Serial.print(".");
     now = time(nullptr);
@@ -124,7 +166,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  setup_pinout();
+  setup_devices();
   setup_wifi_connection();
   setup_client_certificate();
   setup_time_ntp_server();
@@ -137,7 +179,16 @@ void setup()
 
 void loop()
 {
-  led_blink(1, 1000);
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    digitalWrite(LED, LOW);
 
-  client.loop();
+    measure_distance();
+
+    client.loop();
+  }
+  else
+  {
+    led_blink(1, 1000);
+  }
 }
