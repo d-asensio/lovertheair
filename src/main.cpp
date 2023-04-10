@@ -60,15 +60,14 @@ void measure_distance()
 
   if (measure.RangeStatus != 4)
   {
-    Serial.print("Distance (mm): ");
-    Serial.println(measure.RangeMilliMeter);
+    uint16_t constrainedMillimeters = constrain(measure.RangeMilliMeter, 150, 300);
+    uint16_t ledPower = map(constrainedMillimeters, 150, 300, 0, 255);
+    analogWrite(LED, ledPower);
   }
   else
   {
-    Serial.println("Out of range");
+    digitalWrite(LED, HIGH);
   }
-
-  delay(100);
 }
 
 void setup_wifi_connection()
@@ -181,8 +180,6 @@ void loop()
 {
   if (WiFi.status() == WL_CONNECTED)
   {
-    digitalWrite(LED, LOW);
-
     measure_distance();
 
     client.loop();
