@@ -15,7 +15,7 @@ void test_heartbeat_is_not_empty_after_recording_a_pulse() {
     TEST_ASSERT_FALSE(heartbeat.empty());
 }
 
-void test_heartbeat_pulses_returns_a_vector_with_all_the_recorded_pulses() {
+void test_heartbeat_pulses_returns_a_vector_iterator_with_all_the_recorded_pulses() {
     Heartbeat heartbeat;
     Pulse p1 = {0, 500};
     Pulse p2 = {255, 1000};
