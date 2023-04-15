@@ -52,7 +52,7 @@ void led_blink(int repetitions, int time_interval)
   }
 }
 
-void measure_distance()
+uint16_t read_intensity()
 {
   VL53L0X_RangingMeasurementData_t measure;
 
@@ -63,10 +63,12 @@ void measure_distance()
     uint16_t constrainedMillimeters = constrain(measure.RangeMilliMeter, 150, 300);
     uint16_t ledPower = map(constrainedMillimeters, 150, 300, 0, 255);
     analogWrite(LED, ledPower);
+    return ledPower;
   }
   else
   {
     digitalWrite(LED, HIGH);
+    return 0;
   }
 }
 
@@ -180,7 +182,10 @@ void loop()
 {
   if (WiFi.status() == WL_CONNECTED)
   {
-    measure_distance();
+    uint16_t intensity = read_intensity();
+
+    Serial.print("Intensity: ");
+    Serial.println(intensity);
 
     client.loop();
   }
