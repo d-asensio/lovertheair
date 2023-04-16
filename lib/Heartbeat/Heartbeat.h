@@ -1,6 +1,9 @@
 #include <vector>
 #include <stdint.h>
 
+#ifndef HEARTBEAT_H
+#define HEARTBEAT_H
+
 struct Pulse
 {
     uint16_t intensity;
@@ -29,3 +32,5 @@ public:
 private:
     std::vector<Pulse> _pulses;
 };
+
+#endif

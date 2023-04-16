@@ -3,6 +3,9 @@
 #include "IIntensitySensor.h"
 #include "Heartbeat.h"
 
+#ifndef HEARTBEAT_READER_H
+#define HEARTBEAT_READER_H
+
 class HeartbeatReader {
 public:
     HeartbeatReader(IClock* clockService, IIntensitySensor* intensitySensorService);
@@ -19,3 +22,5 @@ private:
 
     std::function<void(Heartbeat*)> _callback;
 };
+
+#endif

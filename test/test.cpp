@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include <unity.h>
 
-using namespace fakeit;
-
+#include "Heartbeat.h"
 #include "HeartbeatReader.h"
+
+using namespace fakeit;
 
 void setUp(void)
 {
