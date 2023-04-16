@@ -8,6 +8,6 @@ bool Heartbeat::empty() {
    return _pulses.empty();
 }
 
-std::vector<Pulse>::iterator Heartbeat::pulses() {
-    return _pulses.begin();
+std::vector<Pulse> Heartbeat::pulses() {
+    return _pulses;
 }

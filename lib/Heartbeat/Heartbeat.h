@@ -18,7 +18,7 @@ class Heartbeat
 public:
     void recordPulse(Pulse pulse);
     bool empty();
-    std::vector<Pulse>::iterator pulses();
+    std::vector<Pulse> pulses();
 
 private:
     std::vector<Pulse> _pulses;
