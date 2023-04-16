@@ -56,7 +56,7 @@ void test_heartbeat_reader_does_not_generate_any_heartbeat_if_no_pulses_are_rece
     TEST_ASSERT_EQUAL_UINT(0, callback_called);
 }
 
-void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_4000_ms() {
+void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_than_4000_ms() {
     Mock<IClock> clockMock;
     Mock<IIntensitySensor> intensitySensorMock;
     IClock& clock = clockMock.get();
@@ -105,7 +105,7 @@ int main( int argc, char **argv) {
     RUN_TEST(test_heartbeat_is_not_empty_after_recording_a_pulse);
     
     RUN_TEST(test_heartbeat_reader_does_not_generate_any_heartbeat_if_no_pulses_are_received);
-    RUN_TEST(test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_4000_ms);
+    RUN_TEST(test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_than_4000_ms);
     
     return UNITY_END();
 }
