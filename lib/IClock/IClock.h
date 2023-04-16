@@ -1,4 +1,5 @@
 class IClock {
 public:
-    virtual unsigned int millis() = 0;
+    virtual unsigned long milliseconds() = 0;
+    virtual ~IClock() = default;
 };

@@ -7,6 +7,8 @@
 #include <LittleFS.h>
 #include <Adafruit_VL53L0X.h>
 
+#include "ArduinoClock.h"
+
 // Pinout
 #define LED D4
 
@@ -23,6 +25,8 @@ WiFiClientSecure espClient;
 
 // MQTT event bus
 PubSubClient client(espClient);
+
+IClock* clockService = new ArduinoClock();
 
 // Laser sensor
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
@@ -186,6 +190,9 @@ void loop()
 
     Serial.print("Intensity: ");
     Serial.println(intensity);
+    
+    Serial.print("Timestamp: ");
+    Serial.println(clockService->milliseconds());
 
     client.loop();
   }

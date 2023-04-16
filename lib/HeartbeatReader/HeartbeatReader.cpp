@@ -11,7 +11,7 @@ void HeartbeatReader::loop() {
         _current_heartbeat = new Heartbeat();
     }
 
-    unsigned int pulse_timestamp_millis = _clockService->millis();
+    unsigned long pulse_timestamp_millis = _clockService->milliseconds();
     uint16_t sensor_read_value =  _intensitySensorService->read();
 
     Pulse next_pulse = {

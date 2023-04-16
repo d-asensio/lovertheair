@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
 
-// #include "Heartbeat.h"
-
 using namespace fakeit;
 
 #include "HeartbeatReader.h"
@@ -90,7 +88,7 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_th
     });
 
     for(Pulse received_pulse : received_pulses) {
-        When(Method(clockMock, millis)).Return(received_pulse.timestamps_millis);
+        When(Method(clockMock, milliseconds)).Return(received_pulse.timestamps_millis);
         When(Method(intensitySensorMock, read)).Return(received_pulse.intensity);
         heartbeatReader.loop();
     }
@@ -142,7 +140,7 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_reads_0_for_more_th
     });
 
     for(Pulse received_pulse : received_pulses) {
-        When(Method(clockMock, millis)).Return(received_pulse.timestamps_millis);
+        When(Method(clockMock, milliseconds)).Return(received_pulse.timestamps_millis);
         When(Method(intensitySensorMock, read)).Return(received_pulse.intensity);
         heartbeatReader.loop();
     }

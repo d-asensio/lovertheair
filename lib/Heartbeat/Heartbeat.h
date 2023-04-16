@@ -4,7 +4,7 @@
 struct Pulse
 {
     uint16_t intensity;
-    unsigned int timestamps_millis;
+    unsigned long timestamps_millis;
 
     bool operator==(const Pulse p)
     {
