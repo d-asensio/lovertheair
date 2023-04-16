@@ -23,7 +23,7 @@ void HeartbeatReader::loop()
         pulse_timestamp_millis
     };
 
-    if (next_pulse.intensity == 0 && next_pulse.timestamps_millis - _last_recorded_pulse.timestamps_millis > 4000)
+    if (next_pulse.isIdle() && next_pulse.timestamps_millis - _last_recorded_pulse.timestamps_millis > 4000)
     {
         _active_heartbeat->recordPulse(_previous_pulse);
         _callback(_active_heartbeat);

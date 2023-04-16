@@ -9,6 +9,10 @@ struct Pulse
     uint16_t intensity;
     unsigned long timestamps_millis;
 
+    bool isIdle () {
+        return intensity == 0;
+    }
+
     bool operator==(const Pulse p)
     {
         return intensity == p.intensity &&
