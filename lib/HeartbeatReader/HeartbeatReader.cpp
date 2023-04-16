@@ -7,7 +7,7 @@ HeartbeatReader::HeartbeatReader(IClock* clockService, IIntensitySensor* intensi
 }
 
 void HeartbeatReader::loop() {
-    if (_current_heartbeat == nullptr) {
+    if (!_current_heartbeat) {
         _current_heartbeat = new Heartbeat();
     }
 
@@ -19,14 +19,14 @@ void HeartbeatReader::loop() {
         pulse_timestamp_millis
     };
 
-    if (pulse_timestamp_millis - _last_timestamp > 4000) {
+    if (next_pulse.timestamps_millis - _last_pulse.timestamps_millis > 4000) {
         _callback(_current_heartbeat);
         _current_heartbeat = nullptr;
         return;
     }
 
     _current_heartbeat->recordPulse(next_pulse);
-    _last_timestamp = pulse_timestamp_millis;
+    _last_pulse = next_pulse;
 };
 
 void HeartbeatReader::setNewHeartbeatCallback(std::function<void(Heartbeat*)> callback) {

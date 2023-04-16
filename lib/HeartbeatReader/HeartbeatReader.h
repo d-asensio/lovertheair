@@ -22,8 +22,7 @@ private:
     IIntensitySensor* _intensitySensorService = nullptr;
 
     Heartbeat* _current_heartbeat = nullptr;
-    Pulse* _last_pulse = nullptr;
-    unsigned int _last_timestamp = 0;
+    Pulse _last_pulse = {0, 0};
 
     std::function<void(Heartbeat*)> _callback;
 };
