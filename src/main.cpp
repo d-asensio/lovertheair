@@ -181,7 +181,7 @@ void setup()
       Serial.print("P -> i");
       Serial.print(pulse.intensity);
       Serial.print(", t");
-      Serial.println(pulse.timestamps_millis);
+      Serial.println(pulse.time);
     }
     Serial.println("-----");
 

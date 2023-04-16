@@ -7,7 +7,7 @@
 struct Pulse
 {
     uint16_t intensity;
-    unsigned long timestamps_millis;
+    unsigned long time;
 
     bool isIdle () {
         return intensity == 0;
@@ -16,13 +16,13 @@ struct Pulse
     bool operator==(const Pulse p)
     {
         return intensity == p.intensity &&
-               timestamps_millis == p.timestamps_millis;
+               time == p.time;
     }
 
     bool operator!=(const Pulse p)
     {
         return intensity != p.intensity ||
-               timestamps_millis != p.timestamps_millis;
+               time != p.time;
     }
 };
 

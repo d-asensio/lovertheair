@@ -88,13 +88,13 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_th
         std::vector<Pulse> pulses = hb->pulses();
         std::vector<Pulse>::iterator pulses_it = pulses.begin();
 
-        TEST_ASSERT_EQUAL_UINT(0, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(0, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(1, pulses_it->intensity);
         pulses_it++;
-        TEST_ASSERT_EQUAL_UINT(100, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(100, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(2, pulses_it->intensity);
         pulses_it++;
-        TEST_ASSERT_EQUAL_UINT(200, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(200, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(3, pulses_it->intensity);
         pulses_it++;
 
@@ -104,7 +104,7 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_th
     });
 
     for(Pulse received_pulse : received_pulses) {
-        When(Method(clockMock, milliseconds)).AlwaysReturn(received_pulse.timestamps_millis);
+        When(Method(clockMock, milliseconds)).AlwaysReturn(received_pulse.time);
         When(Method(intensitySensorMock, read)).Return(received_pulse.intensity);
         heartbeatReader.loop();
     }
@@ -134,19 +134,19 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_reads_0_for_more_th
         std::vector<Pulse> pulses = hb->pulses();
         std::vector<Pulse>::iterator pulses_it = pulses.begin();
 
-        TEST_ASSERT_EQUAL_UINT(0, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(0, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(1, pulses_it->intensity);
         pulses_it++;
-        TEST_ASSERT_EQUAL_UINT(1000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(1000, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(0, pulses_it->intensity);
         pulses_it++;
-        TEST_ASSERT_EQUAL_UINT(2000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(2000, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(3, pulses_it->intensity);
         pulses_it++;
-        TEST_ASSERT_EQUAL_UINT(3000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(3000, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(0, pulses_it->intensity);
         pulses_it++;
-        TEST_ASSERT_EQUAL_UINT(6000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT(6000, pulses_it->time);
         TEST_ASSERT_EQUAL_UINT16(0, pulses_it->intensity);
         pulses_it++;
 
@@ -156,7 +156,7 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_reads_0_for_more_th
     });
 
     for(Pulse received_pulse : received_pulses) {
-        When(Method(clockMock, milliseconds)).AlwaysReturn(received_pulse.timestamps_millis);
+        When(Method(clockMock, milliseconds)).AlwaysReturn(received_pulse.time);
         When(Method(intensitySensorMock, read)).Return(received_pulse.intensity);
         heartbeatReader.loop();
     }
