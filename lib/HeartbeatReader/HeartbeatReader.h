@@ -1,15 +1,7 @@
 #include <functional>
+#include "IClock.h"
+#include "IIntensitySensor.h"
 #include "Heartbeat.h"
-
-class IClock {
-public:
-    virtual unsigned int millis() = 0;
-};
-
-class IIntensitySensor {
-public:
-    virtual uint16_t read() = 0;
-};
 
 class HeartbeatReader {
 public:
