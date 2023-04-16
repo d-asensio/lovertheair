@@ -10,6 +10,7 @@
 #include "ArduinoClock.h"
 #include "IIntensitySensor.h"
 #include "VL53L0XIntensitySensor.h"
+#include "HeartbeatReader.h"
 
 // Pinout
 #define LED D4
@@ -28,8 +29,11 @@ WiFiClientSecure espClient;
 // MQTT event bus
 PubSubClient client(espClient);
 
+
+// Heartbeat reader
 IClock *clockService = new ArduinoClock();
 IIntensitySensor *intensitySensorService = new VL53L0XIntensitySensor();
+HeartbeatReader heartbeatReader(clockService, intensitySensorService);
 
 void setup_devices()
 {
@@ -162,6 +166,27 @@ void setup()
   // publish and subscribe
   client.publish("heartbeat", "hello bitches!");
   client.subscribe("heartbeat");
+
+  // Subscribe to heartbeats
+  heartbeatReader.setNewHeartbeatCallback([](Heartbeat* heartbeat) {    
+    std::vector<Pulse> pulses = heartbeat->pulses();
+
+    // TODO This should be controlled by the HeartBeat
+    if (pulses.size() == 0) {
+      return;
+    }
+
+    Serial.println("Heartbeat -----");
+    for(Pulse pulse : pulses) {
+      Serial.print("P -> i");
+      Serial.print(pulse.intensity);
+      Serial.print(", t");
+      Serial.println(pulse.timestamps_millis);
+    }
+    Serial.println("-----");
+
+    delay(3000);
+  });
 }
 
 void loop()
@@ -179,6 +204,7 @@ void loop()
     Serial.println(clockService->milliseconds());
 
     client.loop();
+    heartbeatReader.loop();
   }
   else
   {
