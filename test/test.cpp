@@ -41,6 +41,21 @@ void test_heartbeat_pulses_returns_a_vector_iterator_with_all_the_recorded_pulse
     TEST_ASSERT_TRUE(*pulses_it == p2);
 }
 
+void test_heartbeat_reader_does_not_generate_any_heartbeat_if_no_pulses_are_received() {
+    Mock<IClock> clockMock;
+    Mock<IIntensitySensor> intensitySensorMock;
+    IClock& clock = clockMock.get();
+    IIntensitySensor& instensitySensor = intensitySensorMock.get();
+    HeartbeatReader heartbeatReader(&clock, &instensitySensor);
+
+    unsigned int callback_called = 0;
+    heartbeatReader.setNewHeartbeatCallback([&callback_called](Heartbeat* hb) {        
+        callback_called++;
+    });
+
+    TEST_ASSERT_EQUAL_UINT(0, callback_called);
+}
+
 void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_4000_ms() {
     Mock<IClock> clockMock;
     Mock<IIntensitySensor> intensitySensorMock;
@@ -89,6 +104,7 @@ int main( int argc, char **argv) {
     RUN_TEST(test_heartbeat_empty_after_initialization);
     RUN_TEST(test_heartbeat_is_not_empty_after_recording_a_pulse);
     
+    RUN_TEST(test_heartbeat_reader_does_not_generate_any_heartbeat_if_no_pulses_are_received);
     RUN_TEST(test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_4000_ms);
     
     return UNITY_END();
