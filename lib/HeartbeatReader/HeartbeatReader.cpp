@@ -26,6 +26,8 @@ void HeartbeatReader::loop() {
             _current_heartbeat->recordPulse(_previous_pulse);
         }
         _callback(_current_heartbeat);
+        
+        delete _current_heartbeat;
         _current_heartbeat = nullptr;
         return;
     }
