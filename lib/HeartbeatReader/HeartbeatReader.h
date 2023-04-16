@@ -21,6 +21,8 @@ private:
     IIntensitySensor* _intensitySensorService = nullptr;
 
     Heartbeat* _active_heartbeat = nullptr;
+    uint16_t _active_heartbeat_timestamp;
+
     Pulse _previous_pulse = {0, 0};
     Pulse _last_recorded_pulse = {0, 0};
 
