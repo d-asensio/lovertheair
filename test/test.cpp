@@ -40,6 +40,21 @@ void test_heartbeat_pulses_returns_a_vector_with_all_the_recorded_pulses() {
     TEST_ASSERT_TRUE(*pulses_it == p2);
 }
 
+void test_heartbeat_does_not_record_two_consecutive_equal_pulses() {
+    Heartbeat heartbeat;
+    Pulse p1 = {128, 500};
+    Pulse p2 = {128, 500};
+    heartbeat.recordPulse(p1);
+    heartbeat.recordPulse(p2);
+
+    std::vector<Pulse> pulses = heartbeat.pulses();
+    std::vector<Pulse>::iterator pulses_it = pulses.begin();
+
+    TEST_ASSERT_TRUE(*pulses_it == p1);
+    pulses_it++;
+    TEST_ASSERT_TRUE(pulses_it == pulses.end());
+}
+
 void test_heartbeat_reader_does_not_generate_any_heartbeat_if_no_pulses_are_received() {
     Mock<IClock> clockMock;
     Mock<IIntensitySensor> intensitySensorMock;
@@ -154,6 +169,7 @@ int main( int argc, char **argv) {
 
     RUN_TEST(test_heartbeat_empty_after_initialization);
     RUN_TEST(test_heartbeat_is_not_empty_after_recording_a_pulse);
+    RUN_TEST(test_heartbeat_does_not_record_two_consecutive_equal_pulses);
     
     RUN_TEST(test_heartbeat_reader_does_not_generate_any_heartbeat_if_no_pulses_are_received);
     RUN_TEST(test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_than_4000_ms);

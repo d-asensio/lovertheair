@@ -30,6 +30,8 @@ public:
     std::vector<Pulse> pulses();
 
 private:
+    bool _isEqualToLastPulse (Pulse pulse);
+
     std::vector<Pulse> _pulses;
 };
 

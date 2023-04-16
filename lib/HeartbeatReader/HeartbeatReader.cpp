@@ -7,6 +7,10 @@ HeartbeatReader::HeartbeatReader(IClock* clockService, IIntensitySensor* intensi
     _intensitySensorService = intensitySensorService;
 }
 
+
+// TODO
+// - The time of the pulses should be relative to the start of the heartbeat
+// - Previos pulse has to be erased when a new heartbeat is generated
 void HeartbeatReader::loop() {
     if (!_current_heartbeat) {
         _current_heartbeat = new Heartbeat();
@@ -21,12 +25,9 @@ void HeartbeatReader::loop() {
     };
 
     if (next_pulse.intensity == 0 && next_pulse.timestamps_millis - _last_recorded_pulse.timestamps_millis > 4000) {
-        // TODO Implement this logic inside heatbeat
-        if(_previous_pulse != _last_recorded_pulse) {
-            _current_heartbeat->recordPulse(_previous_pulse);
-        }
+        _current_heartbeat->recordPulse(_previous_pulse);
         _callback(_current_heartbeat);
-        
+
         delete _current_heartbeat;
         _current_heartbeat = nullptr;
         return;
