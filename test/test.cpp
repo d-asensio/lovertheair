@@ -26,7 +26,7 @@ void test_heartbeat_is_not_empty_after_recording_a_pulse() {
     TEST_ASSERT_FALSE(heartbeat.empty());
 }
 
-void test_heartbeat_pulses_returns_a_vector_iterator_with_all_the_recorded_pulses() {
+void test_heartbeat_pulses_returns_a_vector_with_all_the_recorded_pulses() {
     Heartbeat heartbeat;
     Pulse p1 = {0, 500};
     Pulse p2 = {255, 1000};
@@ -66,7 +66,7 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_th
         {1, 100},
         {2, 200},
         {3, 300},
-        {4, 4301}
+        {0, 4301}
     };
 
     unsigned int callback_called = 0;
@@ -98,6 +98,58 @@ void test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_th
     TEST_ASSERT_EQUAL_UINT(1, callback_called);
 }
 
+void test_heartbeat_reader_generates_a_heartbeat_when_sensor_reads_0_for_more_than_4000_ms() {
+    Mock<IClock> clockMock;
+    Mock<IIntensitySensor> intensitySensorMock;
+    IClock& clock = clockMock.get();
+    IIntensitySensor& instensitySensor = intensitySensorMock.get();
+    HeartbeatReader heartbeatReader(&clock, &instensitySensor);
+    std::vector<Pulse> received_pulses = {
+        {1, 1000},
+        {0, 2000},
+        {3, 3000},
+        {0, 4000},
+        {0, 5000},
+        {0, 6000},
+        {0, 7000},
+        {0, 8001}
+    };
+
+    unsigned int callback_called = 0;
+    heartbeatReader.setNewHeartbeatCallback([&callback_called](Heartbeat* hb) {
+        std::vector<Pulse> pulses = hb->pulses();
+        std::vector<Pulse>::iterator pulses_it = pulses.begin();
+
+        TEST_ASSERT_EQUAL_UINT(1000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT16(1, pulses_it->intensity);
+        pulses_it++;
+        TEST_ASSERT_EQUAL_UINT(2000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT16(0, pulses_it->intensity);
+        pulses_it++;
+        TEST_ASSERT_EQUAL_UINT(3000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT16(3, pulses_it->intensity);
+        pulses_it++;
+        TEST_ASSERT_EQUAL_UINT(4000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT16(0, pulses_it->intensity);
+        pulses_it++;
+        TEST_ASSERT_EQUAL_UINT(7000, pulses_it->timestamps_millis);
+        TEST_ASSERT_EQUAL_UINT16(0, pulses_it->intensity);
+        pulses_it++;
+
+        TEST_ASSERT_TRUE(pulses_it == pulses.end());
+        
+        callback_called++;
+    });
+
+    for(Pulse received_pulse : received_pulses) {
+        When(Method(clockMock, millis)).Return(received_pulse.timestamps_millis);
+        When(Method(intensitySensorMock, read)).Return(received_pulse.intensity);
+        heartbeatReader.loop();
+    }
+
+    TEST_ASSERT_EQUAL_UINT(1, callback_called);
+}
+
 int main( int argc, char **argv) {
     UNITY_BEGIN();
 
@@ -106,6 +158,7 @@ int main( int argc, char **argv) {
     
     RUN_TEST(test_heartbeat_reader_does_not_generate_any_heartbeat_if_no_pulses_are_received);
     RUN_TEST(test_heartbeat_reader_generates_a_heartbeat_when_sensor_is_idle_for_more_than_4000_ms);
+    RUN_TEST(test_heartbeat_reader_generates_a_heartbeat_when_sensor_reads_0_for_more_than_4000_ms);
     
     return UNITY_END();
 }

@@ -11,6 +11,12 @@ struct Pulse
         return intensity == p.intensity &&
                timestamps_millis == p.timestamps_millis;
     }
+
+    bool operator!=(const Pulse p)
+    {
+        return intensity != p.intensity ||
+               timestamps_millis != p.timestamps_millis;
+    }
 };
 
 class Heartbeat
