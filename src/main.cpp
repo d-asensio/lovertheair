@@ -5,9 +5,11 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <LittleFS.h>
-#include <Adafruit_VL53L0X.h>
 
+#include "IClock.h"
 #include "ArduinoClock.h"
+#include "IIntensitySensor.h"
+#include "VL53L0XIntensitySensor.h"
 
 // Pinout
 #define LED D4
@@ -26,10 +28,8 @@ WiFiClientSecure espClient;
 // MQTT event bus
 PubSubClient client(espClient);
 
-IClock* clockService = new ArduinoClock();
-
-// Laser sensor
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+IClock *clockService = new ArduinoClock();
+IIntensitySensor *intensitySensorService = new VL53L0XIntensitySensor();
 
 void setup_devices()
 {
@@ -37,7 +37,9 @@ void setup_devices()
   pinMode(LED, OUTPUT);
 
   // Initialise VL53L0X sensor
-  if (!lox.begin())
+  intensitySensorService->setup();
+
+  if (!intensitySensorService->isAvailable())
   {
     Serial.println(F("Error initialising VL53L0X"));
     while (1)
@@ -53,26 +55,6 @@ void led_blink(int repetitions, int time_interval)
     delay(time_interval);
     digitalWrite(LED, LOW);
     delay(time_interval);
-  }
-}
-
-uint16_t read_intensity()
-{
-  VL53L0X_RangingMeasurementData_t measure;
-
-  lox.rangingTest(&measure, false);
-
-  if (measure.RangeStatus != 4)
-  {
-    uint16_t constrainedMillimeters = constrain(measure.RangeMilliMeter, 150, 300);
-    uint16_t ledPower = map(constrainedMillimeters, 150, 300, 0, 255);
-    analogWrite(LED, ledPower);
-    return ledPower;
-  }
-  else
-  {
-    digitalWrite(LED, HIGH);
-    return 0;
   }
 }
 
@@ -186,11 +168,13 @@ void loop()
 {
   if (WiFi.status() == WL_CONNECTED)
   {
-    uint16_t intensity = read_intensity();
+    uint16_t intensity = intensitySensorService->read();
+
+    analogWrite(LED, 255 - intensity);
 
     Serial.print("Intensity: ");
     Serial.println(intensity);
-    
+
     Serial.print("Timestamp: ");
     Serial.println(clockService->milliseconds());
 

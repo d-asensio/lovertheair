@@ -1,4 +1,5 @@
 #include <functional>
+
 #include "IClock.h"
 #include "IIntensitySensor.h"
 #include "Heartbeat.h"

@@ -1,5 +1,6 @@
-#include "HeartbeatReader.h"
+#include <stdint.h>
 
+#include "HeartbeatReader.h"
 
 HeartbeatReader::HeartbeatReader(IClock* clockService, IIntensitySensor* intensitySensorService) {
     _clockService = clockService;
