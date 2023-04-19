@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <Adafruit_VL53L0X.h>
+ #include <EMA.h>
 
 #include "VL53L0XIntensitySensor.h"
 
@@ -30,10 +31,12 @@ uint16_t VL53L0XIntensitySensor::read()
         return 0;
     }
 
-    uint16_t constrainedMillimeters = constrain(measure.RangeMilliMeter, 150, 300);
-    uint16_t intensity = map(constrainedMillimeters, 150, 300, 0, 255);
+    static EMA<2> EMA_filter(255);
 
-    return intensity;
+    uint16_t constrainedMillimeters = constrain(measure.RangeMilliMeter, 100, 400);
+    uint16_t intensity = map(constrainedMillimeters, 100, 400, 255, 0);
+
+    return EMA_filter(intensity);
 }
 
 bool VL53L0XIntensitySensor::isAvailable()
