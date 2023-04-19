@@ -5,6 +5,7 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <LittleFS.h>
+#include <FastLED.h>
 
 #include "IClock.h"
 #include "ArduinoClock.h"
@@ -12,8 +13,13 @@
 #include "VL53L0XIntensitySensor.h"
 #include "HeartbeatReader.h"
 
-// Pinout
-#define LED D4
+// Led Ring config
+#define LED_RING_DATA_PIN D5
+#define LED_RING_NUM_LEDS 24
+#define LED_RING_TYPE WS2812B
+#define LED_RING_COLOR_ORDER GRB
+#define LED_RING_VOLTS 5
+#define LED_RING_MAX_MA 4000
 
 // MQTT Broker Connection
 const char *mqtt_broker_host = MQTT_BROKER_HOST;
@@ -29,17 +35,22 @@ WiFiClientSecure espClient;
 // MQTT event bus
 PubSubClient client(espClient);
 
-
 // Heartbeat reader
 IClock *clockService = new ArduinoClock();
 IIntensitySensor *intensitySensorService = new VL53L0XIntensitySensor();
 HeartbeatReader heartbeatReader(clockService, intensitySensorService);
 
+// Led ring
+CRGBArray<LED_RING_NUM_LEDS> leds;
+
+void setup_led_ring()
+{
+  FastLED.setMaxPowerInVoltsAndMilliamps(LED_RING_VOLTS, LED_RING_MAX_MA);
+  FastLED.addLeds<LED_RING_TYPE, LED_RING_DATA_PIN, LED_RING_COLOR_ORDER>(leds, LED_RING_NUM_LEDS);
+}
+
 void setup_devices()
 {
-  // Initialise LED
-  pinMode(LED, OUTPUT);
-
   // Initialise VL53L0X sensor
   intensitySensorService->setup();
 
@@ -48,17 +59,6 @@ void setup_devices()
     Serial.println(F("Error initialising VL53L0X"));
     while (1)
       ;
-  }
-}
-
-void led_blink(int repetitions, int time_interval)
-{
-  for (int i = 0; i < repetitions; i++)
-  {
-    digitalWrite(LED, HIGH);
-    delay(time_interval);
-    digitalWrite(LED, LOW);
-    delay(time_interval);
   }
 }
 
@@ -126,8 +126,6 @@ void handle_mqtt_event(char *topic, byte *payload, unsigned int length)
   }
   Serial.println();
   Serial.println("-----------------------");
-
-  led_blink(4, 200);
 }
 
 void setup_mqtt_broker_connection()
@@ -155,9 +153,12 @@ void setup_mqtt_broker_connection()
 
 void setup()
 {
+  delay(3000);
+
   Serial.begin(115200);
 
   setup_devices();
+  setup_led_ring();
   setup_wifi_connection();
   setup_client_certificate();
   setup_time_ntp_server();
@@ -168,7 +169,7 @@ void setup()
   client.subscribe("heartbeat");
 
   // Subscribe to heartbeats
-  heartbeatReader.setNewHeartbeatCallback([](Heartbeat* heartbeat) {    
+  heartbeatReader.setNewHeartbeatCallback([](Heartbeat *heartbeat) {    
     std::vector<Pulse> pulses = heartbeat->pulses();
 
     // TODO This should be controlled by the HeartBeat
@@ -184,30 +185,30 @@ void setup()
       Serial.println(pulse.time);
     }
     Serial.println("-----");
-
-    delay(3000);
   });
 }
 
 void loop()
 {
+  uint16_t intensity = intensitySensorService->read();
+
+  Serial.print("Intensity: ");
+  Serial.println(intensity);
+
+  Serial.print("Timestamp: ");
+  Serial.println(clockService->milliseconds());
+
+  for (int i = 0; i < LED_RING_NUM_LEDS; i++)
+  {
+    leds[i].setRGB(0, 0, intensity);
+  }
+
+  FastLED.show();
+  heartbeatReader.loop();
+
   if (WiFi.status() == WL_CONNECTED)
   {
-    uint16_t intensity = intensitySensorService->read();
-
-    analogWrite(LED, 255 - intensity);
-
-    Serial.print("Intensity: ");
-    Serial.println(intensity);
-
-    Serial.print("Timestamp: ");
-    Serial.println(clockService->milliseconds());
 
     client.loop();
-    heartbeatReader.loop();
-  }
-  else
-  {
-    led_blink(1, 1000);
   }
 }
