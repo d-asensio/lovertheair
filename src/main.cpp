@@ -5,7 +5,7 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <LittleFS.h>
-#include <FastLED.h>
+#include <Adafruit_NeoPixel.h>
 
 #include "IClock.h"
 #include "ArduinoClock.h"
@@ -41,12 +41,13 @@ IIntensitySensor *intensitySensorService = new VL53L0XIntensitySensor();
 HeartbeatReader heartbeatReader(clockService, intensitySensorService);
 
 // Led ring
-CRGBArray<LED_RING_NUM_LEDS> leds;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_RING_NUM_LEDS, LED_RING_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 void setup_led_ring()
 {
-  FastLED.setMaxPowerInVoltsAndMilliamps(LED_RING_VOLTS, LED_RING_MAX_MA);
-  FastLED.addLeds<LED_RING_TYPE, LED_RING_DATA_PIN, LED_RING_COLOR_ORDER>(leds, LED_RING_NUM_LEDS);
+  strip.begin();
+  strip.setBrightness(225);
+  strip.show();
 }
 
 void setup_devices()
@@ -153,8 +154,6 @@ void setup_mqtt_broker_connection()
 
 void setup()
 {
-  delay(3000);
-
   Serial.begin(115200);
 
   setup_devices();
@@ -198,12 +197,11 @@ void loop()
   Serial.print("Timestamp: ");
   Serial.println(clockService->milliseconds());
 
-  for (int i = 0; i < LED_RING_NUM_LEDS; i++)
-  {
-    leds[i].setRGB(0, 0, intensity);
+  for(uint16_t i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(intensity, intensity, intensity));
   }
+  strip.show();
 
-  FastLED.show();
   heartbeatReader.loop();
 
   if (WiFi.status() == WL_CONNECTED)
