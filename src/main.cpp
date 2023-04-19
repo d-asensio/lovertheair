@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
@@ -21,6 +22,9 @@
 #define LED_RING_VOLTS 5
 #define LED_RING_MAX_MA 4000
 
+// Pressure sensor config
+#define PRESSURE_SENSOR_PIN A0
+
 // MQTT Broker Connection
 const char *mqtt_broker_host = MQTT_BROKER_HOST;
 const int mqtt_port = MQTT_BROKER_PORT;
@@ -42,6 +46,8 @@ HeartbeatReader heartbeatReader(clockService, intensitySensorService);
 
 // Led ring
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_RING_NUM_LEDS, LED_RING_DATA_PIN, NEO_GRB + NEO_KHZ800);
+
+//
 
 void setup_led_ring()
 {
@@ -190,6 +196,12 @@ void setup()
 void loop()
 {
   uint16_t intensity = intensitySensorService->read();
+  uint16_t pressure = analogRead(PRESSURE_SENSOR_PIN);
+  uint16_t constrainedPressure = constrain(pressure, 0, 100);
+  uint16_t mappedPressure = map(constrainedPressure, 0, 100, 0, 255);
+
+  Serial.print("Pressure: ");
+  Serial.println(mappedPressure);
 
   Serial.print("Intensity: ");
   Serial.println(intensity);
@@ -198,7 +210,7 @@ void loop()
   Serial.println(clockService->milliseconds());
 
   for(uint16_t i=0; i<strip.numPixels(); i++) {
-    strip.setPixelColor(i, strip.Color(intensity, intensity, intensity));
+    strip.setPixelColor(i, strip.Color(intensity, mappedPressure, intensity));
   }
   strip.show();
 

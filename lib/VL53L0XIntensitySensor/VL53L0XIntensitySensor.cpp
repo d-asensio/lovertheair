@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <Adafruit_VL53L0X.h>
- #include <EMA.h>
+#include <EMA.h>
 
 #include "VL53L0XIntensitySensor.h"
 
