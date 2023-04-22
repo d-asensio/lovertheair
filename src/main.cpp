@@ -178,7 +178,7 @@ void setup()
     std::vector<Pulse> pulses = heartbeat->pulses();
 
     // TODO This should be controlled by the HeartBeat
-    if (pulses.size() == 0) {
+    if (pulses.size() <= 1) {
       return;
     }
 
@@ -193,15 +193,20 @@ void setup()
   });
 }
 
+uint16_t read_pressure () {
+  uint16_t pressure = analogRead(PRESSURE_SENSOR_PIN);
+  uint16_t constrainedPressure = constrain(pressure, 20, 90);
+
+  return map(constrainedPressure, 20, 90, 0, 255);
+}
+
 void loop()
 {
   uint16_t intensity = intensitySensorService->read();
-  uint16_t pressure = analogRead(PRESSURE_SENSOR_PIN);
-  uint16_t constrainedPressure = constrain(pressure, 0, 100);
-  uint16_t mappedPressure = map(constrainedPressure, 0, 100, 0, 255);
+  uint16_t pressure = read_pressure();
 
   Serial.print("Pressure: ");
-  Serial.println(mappedPressure);
+  Serial.println(pressure);
 
   Serial.print("Intensity: ");
   Serial.println(intensity);
@@ -210,15 +215,16 @@ void loop()
   Serial.println(clockService->milliseconds());
 
   for(uint16_t i=0; i<strip.numPixels(); i++) {
-    strip.setPixelColor(i, strip.Color(intensity, mappedPressure, intensity));
+    strip.setPixelColor(i, strip.Color(228, 121, pressure));
   }
+
+  strip.setBrightness(intensity);
   strip.show();
 
   heartbeatReader.loop();
 
   if (WiFi.status() == WL_CONNECTED)
   {
-
     client.loop();
   }
 }
