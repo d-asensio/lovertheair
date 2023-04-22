@@ -17,10 +17,7 @@
 // Led Ring config
 #define LED_RING_DATA_PIN D5
 #define LED_RING_NUM_LEDS 24
-#define LED_RING_TYPE WS2812B
-#define LED_RING_COLOR_ORDER GRB
-#define LED_RING_VOLTS 5
-#define LED_RING_MAX_MA 4000
+#define LED_RING_TYPE NEO_GRB + NEO_KHZ800
 
 // Pressure sensor config
 #define PRESSURE_SENSOR_PIN A0
@@ -44,15 +41,48 @@ IClock *clockService = new ArduinoClock();
 IIntensitySensor *intensitySensorService = new VL53L0XIntensitySensor();
 HeartbeatReader heartbeatReader(clockService, intensitySensorService);
 
-// Led ring
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_RING_NUM_LEDS, LED_RING_DATA_PIN, NEO_GRB + NEO_KHZ800);
+// Color data type
+struct RGBColor {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
 
-//
+// Led ring
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_RING_NUM_LEDS, LED_RING_DATA_PIN, LED_RING_TYPE);
+RGBColor current_color = { 228, 121, 0 };
+
+RGBColor unserialize_color(byte* payload) {
+    char* color_str = (char*)payload; // Cast byte* to char*
+    char* color_token;
+    RGBColor color;
+
+    // Parse red component
+    color_token = strtok(color_str, ",");
+    color.r = atoi(color_token);
+
+    // Parse green component
+    color_token = strtok(NULL, ",");
+    color.g = atoi(color_token);
+
+    // Parse blue component
+    color_token = strtok(NULL, ",");
+    color.b = atoi(color_token);
+
+    return color;
+}
+
+void set_strip_color (RGBColor color) {
+  for(uint16_t i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(color.r, color.g, color.b));
+  }
+}
 
 void setup_led_ring()
 {
   strip.begin();
   strip.setBrightness(225);
+  set_strip_color(current_color);
   strip.show();
 }
 
@@ -126,13 +156,27 @@ void handle_mqtt_event(char *topic, byte *payload, unsigned int length)
 {
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
-  Serial.print("Message:");
+
+  Serial.println("Color:");
   for (unsigned int i = 0; i < length; i++)
   {
     Serial.print((char)payload[i]);
   }
-  Serial.println();
+
+  RGBColor color = unserialize_color(payload);
+
+  Serial.print("R: ");
+  Serial.println(color.r);
+
+  Serial.print("G: ");
+  Serial.println(color.g);
+
+  Serial.print("B: ");
+  Serial.println(color.b);
+
   Serial.println("-----------------------");
+
+  current_color = color;
 }
 
 void setup_mqtt_broker_connection()
@@ -202,6 +246,13 @@ uint16_t read_pressure () {
 
 void loop()
 {
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    client.loop();
+  }
+
+  heartbeatReader.loop();
+
   uint16_t intensity = intensitySensorService->read();
   uint16_t pressure = read_pressure();
 
@@ -214,17 +265,7 @@ void loop()
   Serial.print("Timestamp: ");
   Serial.println(clockService->milliseconds());
 
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-    strip.setPixelColor(i, strip.Color(228, 121, pressure));
-  }
-
+  set_strip_color(current_color);
   strip.setBrightness(intensity);
   strip.show();
-
-  heartbeatReader.loop();
-
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    client.loop();
-  }
 }
